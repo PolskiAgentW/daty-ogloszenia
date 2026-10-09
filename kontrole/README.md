@@ -79,16 +79,16 @@ Uwagi:
 ## Zmiany w API po zgłoszeniu
 
 Niezgodności potwierdzone w druku przesłano Ośrodkowi Informatyki Kancelarii Sejmu (ISAP) w siedmiu listach: pięć
-w formacie `zmiany_api.py`, dwie w innym. Stan API sprawdzony `zmiany_api.py` 9 października 2026 r. (10:36–10:48):
+w formacie `zmiany_api.py`, dwie w innym. Stan API sprawdzony `zmiany_api.py` 9 października 2026 r. (16:30–16:44):
 
 | lista | co zawierała | wiersze | API ma teraz wartość z druku | zmienione na inną wartość | bez zmian |
 |---|---|---:|---:|---:|---:|
 | 30.09.2026 | `announcementDate` z innym rokiem niż data w tytule i w druku | 6 | 6 | 0 | 0 |
 | 01.10.2026 | `announcementDate` i `promulgation` inne niż w druku | 128 | 126 | 2 | 0 |
-| 04.10.2026 | akty od 2000 r.: `announcementDate`, data w tytule, `promulgation` inne niż w druku | 566 | 334 | 4 | 228 |
-| 07.10.2026 | akty 1918–1999: `announcementDate`, data w tytule, `promulgation` inne niż w druku | 344 | 0 | 0 | 344 |
+| 04.10.2026 | akty od 2000 r.: `announcementDate`, data w tytule, `promulgation` inne niż w druku | 566 | 360 | 4 | 202 |
+| 07.10.2026 | akty 1918–1999: `announcementDate`, data w tytule, `promulgation` inne niż w druku | 344 | 3 | 0 | 341 |
 | 08.10.2026 | `promulgation` inna niż data ogłoszenia w druku (1918–2011 z winiety numeru, od 2012 r. z nagłówka PDF) | 277 | 0 | 0 | 277 |
-| razem | | 1 321 | 466 | 6 | 849 |
+| razem | | 1 321 | 495 | 6 | 820 |
 
 Dwie listy w innym formacie, sprawdzone osobno 9.10: 11 rekordów z PDF-em innego aktu (07.10): każdy PDF w API
 jest ten sam co przed zgłoszeniem (SHA-256); 48 rekordów z innym numerem albo datą aktu w tytule niż w druku (08.10):
@@ -97,8 +97,8 @@ jest ten sam co przed zgłoszeniem (SHA-256); 48 rekordów z innym numerem albo 
 Z 6 wierszy „zmienione na inną wartość” 2 to umowy międzynarodowe: API ma teraz datę ratyfikacji, która też jest
 w druku (zgłoszenie podawało datę podpisania). W pozostałych 4 nowej wartości w druku nie znalazłem.
 
-Zmiany z listy 04.10 pojawiały się w API stopniowo od 6 października, więc wiersze „bez zmian” to stan na 9.10,
-a nie wynik końcowy. Samych list tu nie ma. Pomiar da się powtórzyć na dowolnej własnej liście w formacie opisanym
+Zmiany pojawiają się w API stopniowo (lista 04.10 od 6 października, lista 07.10 od 9 października, wg `changeDate`),
+więc wiersze „bez zmian” to stan na 9.10, a nie wynik końcowy. Samych list tu nie ma. Pomiar da się powtórzyć na dowolnej własnej liście w formacie opisanym
 w nagłówku `zmiany_api.py`.
 
 ## Licencja

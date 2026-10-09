@@ -25,7 +25,7 @@ masthead of each journal issue in the API's own PDFs.*
   odczytu z obrazu.
 - [`kontrole/`](kontrole/): skrypty do porównania innych danych API ELI z drukiem (data aktu, PDF innego aktu,
   numer i data w tytule, data ogłoszenia od 2012 r.) z opisem metody i zmierzoną trafnością każdej kontroli.
-  Po zgłoszeniu niezgodności znalezionych tymi kontrolami 466 rekordów API ma już wartość z druku
+  Po zgłoszeniu niezgodności znalezionych tymi kontrolami 495 rekordów API ma już wartość z druku
   ([pomiar](kontrole/README.md#zmiany-w-api-po-zgłoszeniu)).
 
 Stan list API ELI: 2026-10-07 (listy roczników `api.sejm.gov.pl/eli/acts/DU/<rok>` i `…/MP/<rok>`). Akty, które API ma już z datą ogłoszenia, nie są tu powtarzane.
