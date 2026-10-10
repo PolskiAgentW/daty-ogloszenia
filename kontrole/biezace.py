@@ -5,7 +5,7 @@ je przez kontrole 1–5 (daty_tytul.py, zly_pdf.py, numer_tytulu.py, metadane.py
 o promulgation dopisuje „Data ogłoszenia” ze strony wydawcy (dziennikustaw.gov.pl, monitorpolski.gov.pl), czyli drugie
 źródło obok druku.
 
-    python3 biezace.py KATALOG [--dni 90] [--pauza 1] [--przytnij]
+    python3 biezace.py KATALOG [--dni 90] [--pauza 1] [--budzet 40] [--przytnij]
 
 W KATALOGU zapisuje:
   kandydaci.csv  wiersz = kandydat (opis kolumn w README.md katalogu); kolumna od = pierwszy dzień, w którym
@@ -13,7 +13,8 @@ W KATALOGU zapisuje:
   stan.json      data przebiegu, okno, liczba aktów i kandydatów.
 Listy roczników pobiera za każdym razem od nowa: meta.json = pozycja z listy, czyli stan API na dziś. PDF-y trzyma
 w ELI_CACHE i pobiera ponownie tylko wtedy, gdy w liście zmienił się changeDate aktu. --przytnij usuwa z ELI_CACHE
-PDF-y aktów spoza okna (tylko dla katalogu używanego wyłącznie przez tę kontrolę). Jedno zapytanie naraz."""
+PDF-y aktów spoza okna (tylko dla katalogu używanego wyłącznie przez tę kontrolę). Po --budzet minutach pobierania
+akty bez PDF-u zostają na następny przebieg (stan.json: aktow_z_pdf < aktow). Jedno zapytanie naraz."""
 import argparse
 import csv
 import datetime as dt
@@ -51,16 +52,22 @@ def okno(od: str, lata: range, tmp: Path, pauza: float) -> list[dict]:
     return acts
 
 
-def pdfy(acts: list[dict], tmp: Path, pauza: float) -> tuple[int, int]:
-    """Katalog roboczy w układzie ELI_CACHE: meta.json z listy, text.pdf jako dowiązanie do PDF-u w ELI_CACHE."""
+def pdfy(acts: list[dict], tmp: Path, pauza: float, budzet: float) -> tuple[int, int]:
+    """Katalog roboczy w układzie ELI_CACHE: meta.json z listy, text.pdf jako dowiązanie do PDF-u w ELI_CACHE.
+    Po budzet minutach nie pobiera już PDF-ów (te akty sprawdzi następny przebieg); stary PDF zostaje w użyciu."""
     have = got = 0
+    end = time.monotonic() + budzet * 60
     for it in acts:
         if not it.get("textPDF"):
             continue
         d = CACHE / it["ELI"]
         pdf, stamp = d / "text.pdf", d / "changeDate"
         change = it.get("changeDate") or ""
-        if not pdf.exists() or not stamp.exists() or stamp.read_text() != change:
+        stale = not pdf.exists() or not stamp.exists() or stamp.read_text() != change
+        if stale and time.monotonic() > end:
+            if not pdf.exists():
+                continue
+        elif stale:
             data = get(f"{API}/{it['ELI']}/text.pdf")
             time.sleep(pauza)
             if data is None:
@@ -156,6 +163,7 @@ def main() -> None:
     ap.add_argument("--dni", type=int, default=90)
     ap.add_argument("--pauza", type=float, default=1.0)
     ap.add_argument("--przytnij", action="store_true")
+    ap.add_argument("--budzet", type=float, default=40, help="minuty na pobieranie PDF-ów")
     a = ap.parse_args()
     dest = Path(a.katalog)
     dest.mkdir(parents=True, exist_ok=True)
@@ -165,7 +173,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as t:
         tmp = Path(t) / "okno"
         acts = okno(od, lata, tmp, a.pauza)
-        have, got = pdfy(acts, tmp, a.pauza)
+        have, got = pdfy(acts, tmp, a.pauza, a.budzet)
         cut = przytnij(acts) if a.przytnij else 0
         print(f"okno od {od}: {len(acts)} aktów, z PDF-em {have}, pobrane PDF-y {got}, usunięte z cache {cut}",
               file=sys.stderr)

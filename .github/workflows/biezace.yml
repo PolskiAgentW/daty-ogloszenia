@@ -36,7 +36,7 @@ jobs:
         working-directory: kontrole
         env:
           ELI_CACHE: ${{ runner.temp }}/eli-cache
-        run: python3 biezace.py ../biezace --dni 90 --przytnij
+        run: python3 biezace.py ../biezace --dni 90 --budzet 40 --przytnij
       - uses: actions/cache/save@v4
         if: always()
         with:
