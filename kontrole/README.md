@@ -22,6 +22,7 @@ python3 zly_pdf.py --pub MP --lata 2012-2026 wynik_zly_pdf.csv               # k
 python3 numer_tytulu.py --pub MP --lata 2012-2026 wynik_numer.csv            # kontrola 3
 python3 metadane.py --pub MP --lata 2012-2026 wynik_metadane.csv             # kontrola 4
 python3 naglowek_2012.py --pub MP --lata 2012-2026 wynik_naglowek.csv        # kontrola 5
+python3 kolejnosc.py wynik_kolejnosc.csv                                     # kontrola 7, same listy (2012+)
 python3 data_zakonczenia.py dziennik-ustaw-1918-1989-md wynik_zakonczenie.csv  # kontrola 6, korpus eli2md
 python3 zmiany_api.py zgloszone.csv                                          # czy API już ma wartość z druku
 python3 biezace.py ../biezace --dni 90                                       # kontrole 1–5 na aktach z 90 dni
@@ -42,6 +43,7 @@ Kontrole 2–5 nie korzystają z sieci.
 | `metadane.py` | datę i numer z tytułu z nagłówkiem aktu w PDF-ie (pod „Poz. N”) | `DATA`, `NR`, `DATA+NR` |
 | `naglowek_2012.py` | `promulgation` z datą „Warszawa, dnia …” w nagłówku dziennika na stronie 1 PDF-u (od 2012 r.) | `INNA`, `BRAK_W_API` |
 | `data_zakonczenia.py` | `announcementDate` aktów bez daty w tytule z datą formuły końcowej („Warszawa, dnia …”) w tekście aktu z korpusu [dziennik-ustaw-1918-1989-md](https://github.com/PolskiAgentW/dziennik-ustaw-1918-1989-md) (OCR skanów, eli2md) | `inna` |
+| `kolejnosc.py` | `promulgation` z kolejnością pozycji (od 2012 r. numery pozycji rosną z datą ogłoszenia); same listy | każdy wiersz → nagłówek PDF-u |
 | `zmiany_api.py` | listę zgłoszonych wartości ze stanem API teraz | – |
 | `biezace.py` | kontrole 1–5 na aktach z ostatnich N dni (świeże listy, PDF-y tylko nowe albo zmienione); uruchamiany codziennie, wynik w [`biezace/`](../biezace/) | każdy wiersz |
 
@@ -64,6 +66,8 @@ niezależne odczyty obrazu strony i za potwierdzone uznano tylko daty, w któryc
 | `numer_tytulu.py` | Dz.U. 1990–2026: 155 tytułów | 0 | – | – |
 | `metadane.py` | M.P. 2012–2026, Dz.U. 2025–2026 i część 2024 (razem 21 595 PDF-ów) | 67 | 62 | 5: inny zapis numeru, sygnatura wyroku albo cytowany wyrok w nagłówku |
 | `naglowek_2012.py` | M.P. 2012–2026, Dz.U. 2025–2026 i część 2024 (21 595 PDF-ów) | 186 `INNA`, 3 `BRAK_W_API` | 189: strona wydawcy podaje datę z nagłówka PDF-u (10.10.2026; w 11 API ma ją już też) | 0 |
+| `kolejnosc.py` → `naglowek_2012.py` | Dz.U. 2012–2024: 30 234 akty z list, PDF-y pobrane tylko dla 200 kandydatów (10.10.2026) | 200 | 56: nagłówek PDF-u ma inną datę (52) albo API nie ma daty (4); po sprawdzeniu sąsiednich pozycji z tą samą datą w API jeszcze 2 | 144: data w API zgodna z nagłówkiem (sąsiedzi złej daty) |
+| `kolejnosc.py` | Dz.U. 2025–2026 i M.P. 2012–2026, gdzie mam wszystkie PDF-y: ile niezgodności `promulgation` z kontroli 5 kontrola 7 też wskazuje (10.10.2026) | 78 (Dz.U.), 251 (M.P.) | Dz.U.: 22 z 27 niezgodności; M.P.: 90 ze 148 | reszty nie widać w kolejności (np. cały blok pozycji z tą samą złą datą) |
 | `biezace.py` | akty z `promulgation` albo `announcementDate` od 12.07 do 10.10.2026: 686 (10.10.2026) | 10 wierszy w 7 aktach | 10 (tekst PDF-u; [opis](../biezace/README.md#trafność)) | 0 |
 | `data_zakonczenia.py` | Dz.U. 1918–1989: 685 aktów bez daty w tytule, bez umów międzynarodowych (10.10.2026; 591 `zgodna`, 70 bez daty w tekście) | 24 `inna` | 8 (z 15 obejrzanych na obrazie strony) | 9 odrzuconych z samego tekstu (przywołania innych aktów, treść sprostowań); z 15 obejrzanych 7: 5 to data sąsiedniej pozycji, 1 błąd roku w druku, 1 błąd OCR cyfry |
 
@@ -87,8 +91,9 @@ Uwagi:
   może dotyczyć sąsiedniego aktu, jeśli API ma jego datę. Takich przypadków nie liczyłem.
   Z 70 aktów bez daty w tekście obejrzałem 4 (losowo): 2 nie mają daty w druku, 2 mają tylko miesiąc
   („Warszawa, w grudniu 1919 r.”); w 1 z nich `announcementDate` jest z innego miesiąca (30.11.1919).
-- Zakres to PDF-y, które miałem pobrane. Dz.U. 2012–2024 (akty, które API daje też jako HTML) prawie nie były
-  sprawdzane.
+- Zakres to PDF-y, które miałem pobrane. Z Dz.U. 2012–2024 (akty, które API daje też jako HTML) kontrole 2–5
+  objęły tylko ok. 1 200 aktów z pobranym PDF-em, a nagłówek PDF-u dodatkowo 200 kandydatów kontroli 7. Reszta to ok.
+  29 tys. PDF-ów (ok. 35 GB), których nie pobierałem.
 
 ## Zmiany w API po zgłoszeniu
 
