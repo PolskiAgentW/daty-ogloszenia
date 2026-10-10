@@ -25,22 +25,25 @@ druk (PDF aktu). Lista nie jest nigdzie wysyłana.
 | `w_API` | wartość w API w dniu przebiegu |
 | `inna_wartosc` | wartość z drugiego źródła (pusta, gdy kontrola wykrywa tylko brak, np. numeru w PDF-ie) |
 | `zrodlo_innej_wartosci` | skąd jest `inna_wartosc` (tytuł w API, nagłówek PDF-u z cytatem, numery pozycji w PDF-ie) |
-| `wydawca` | tylko przy `promulgation`: „Data ogłoszenia” ze strony aktu u wydawcy (dziennikustaw.gov.pl, monitorpolski.gov.pl) |
 | `od` | pierwszy dzień, w którym kontrola wskazała ten wiersz (pierwszy przebieg: 10.10.2026) |
 | `tytul` | tytuł aktu w API (do 200 znaków) |
 
 ## Trafność
 
-Pierwszy przebieg, lokalnie 10.10.2026 (686 aktów z okna 12.07–10.10.2026): 10 wierszy w 7 aktach. Wszystkie
-sprawdziłem w tekście PDF-ów. W każdym z 10 wierszy API różni się od druku: w 8 druk ma `inna_wartosc` (przy 6 wierszach
-`promulgation` tę samą datę podaje też strona wydawcy), w 1 numeru z tytułu nie ma w PDF-ie, a w 1
-(`announcementDate>promulgation`) druk ma `announcementDate` z API, ale `promulgation` inną niż API. To mała próbka. Trafność kontroli na większych zbiorach jest w [`kontrole/README.md`](../kontrole/README.md#zmierzona-trafność).
+Pierwszy przebieg, 10.10.2026 (686 aktów z okna 12.07–10.10.2026; lokalnie i w GitHub Actions ten sam wynik):
+10 wierszy w 7 aktach. Wszystkie sprawdziłem w tekście PDF-ów. W każdym z 10 wierszy API różni się od druku: w 8 druk
+ma `inna_wartosc` (przy 6 wierszach `promulgation` tę samą datę podawała 10.10 także strona aktu u wydawcy,
+dziennikustaw.gov.pl albo monitorpolski.gov.pl), w 1 numeru z tytułu nie ma w PDF-ie, a w 1
+(`announcementDate>promulgation`) druk ma `announcementDate` z API, ale `promulgation` inną niż API. To mała próbka.
+Trafność kontroli na większych zbiorach jest w [`kontrole/README.md`](../kontrole/README.md#zmierzona-trafność).
 
 Różnica `promulgation` o jeden dzień to najczęstszy przypadek. Do 10.10.2026 nie wiedziałem, czy to niezgodność, czy
-inna konwencja. Strona wydawcy podaje jednak tę samą datę co nagłówek PDF-u (liczby w `kontrole/README.md`).
+inna konwencja. Strona aktu u wydawcy podaje jednak tę samą datę co nagłówek PDF-u (liczby w `kontrole/README.md`).
+Kontrola codzienna stron wydawcy nie odpytuje, bo ich robots.txt zabrania automatów.
 
 ## Obciążenie API
 
-Jedno zapytanie naraz, przerwa 1 s. Każdy przebieg pobiera listy roczników (2 zapytania, na początku roku 4), PDF-y
-aktów nowych albo zmienionych od poprzedniego przebiegu (pole `changeDate` w liście) i stronę wydawcy dla wierszy
-`promulgation`. PDF-y z poprzednich przebiegów są w cache GitHub Actions.
+Tylko API ELI, jedno zapytanie naraz, przerwa 1 s. Każdy przebieg pobiera listy roczników (2 zapytania, na początku
+roku 4) i PDF-y aktów nowych albo zmienionych od poprzedniego przebiegu (pole `changeDate` w liście). PDF-y
+z poprzednich przebiegów są w cache GitHub Actions. Pierwszy przebieg (cały 90-dniowy zbiór PDF-ów) pobiera najwyżej
+40 minut, resztę dobierają następne.

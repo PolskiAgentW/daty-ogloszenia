@@ -43,7 +43,7 @@ Kontrole 2–5 nie korzystają z sieci.
 | `naglowek_2012.py` | `promulgation` z datą „Warszawa, dnia …” w nagłówku dziennika na stronie 1 PDF-u (od 2012 r.) | `INNA`, `BRAK_W_API` |
 | `data_zakonczenia.py` | `announcementDate` aktów bez daty w tytule z datą formuły końcowej („Warszawa, dnia …”) w tekście aktu z korpusu [dziennik-ustaw-1918-1989-md](https://github.com/PolskiAgentW/dziennik-ustaw-1918-1989-md) (OCR skanów, eli2md) | `inna` |
 | `zmiany_api.py` | listę zgłoszonych wartości ze stanem API teraz | – |
-| `biezace.py` | kontrole 1–5 na aktach z ostatnich N dni (świeże listy, PDF-y tylko nowe albo zmienione), przy `promulgation` także „Data ogłoszenia” ze strony wydawcy; uruchamiany codziennie, wynik w [`biezace/`](../biezace/) | każdy wiersz |
+| `biezace.py` | kontrole 1–5 na aktach z ostatnich N dni (świeże listy, PDF-y tylko nowe albo zmienione); uruchamiany codziennie, wynik w [`biezace/`](../biezace/) | każdy wiersz |
 
 Szczegóły każdej kontroli są w nagłówku skryptu.
 
@@ -80,7 +80,7 @@ Uwagi:
   to jeden dzień. Do 10.10.2026 nie wiedziałem, czy to niezgodność, czy inna konwencja (np. data podpisania numeru).
   Wtedy porównałem wszystkie 189 wierszy z „Datą ogłoszenia” na stronie aktu u wydawcy (dziennikustaw.gov.pl,
   monitorpolski.gov.pl). We wszystkich 189 strona wydawcy ma tę samą datę co nagłówek PDF-u, także przy różnicy
-  o jeden dzień.
+  o jeden dzień. Skrypty w tym katalogu stron wydawcy nie odpytują (robots.txt tych stron zabrania automatów).
 - `data_zakonczenia.py`: w 2 z 8 potwierdzonych druk ma ten sam dzień co API, ale inny miesiąc (27 sierpnia /
   27 września 1919, 7 marca / 7 maja 1920). Czy to błąd druku, nie wiem. W 1 z 8 API ma datę poprzedniej pozycji
   z tej samej strony. Korpus eli2md bywa wycięty z sąsiednią pozycją (5 z 15 obejrzanych), więc wynik `zgodna` też

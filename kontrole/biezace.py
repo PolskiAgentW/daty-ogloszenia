@@ -1,9 +1,8 @@
 """Codzienna kontrola bieżących rekordów API ELI (w GitHub Actions: .github/workflows/biezace.yml).
 
 Bierze akty Dz.U. i M.P., których promulgation albo announcementDate przypada w ostatnich --dni dniach, i przepuszcza
-je przez kontrole 1–5 (daty_tytul.py, zly_pdf.py, numer_tytulu.py, metadane.py, naglowek_2012.py). Przy wierszach
-o promulgation dopisuje „Data ogłoszenia” ze strony wydawcy (dziennikustaw.gov.pl, monitorpolski.gov.pl), czyli drugie
-źródło obok druku.
+je przez kontrole 1–5 (daty_tytul.py, zly_pdf.py, numer_tytulu.py, metadane.py, naglowek_2012.py). Korzysta tylko
+z API ELI (strony wydawcy, dziennikustaw.gov.pl i monitorpolski.gov.pl, zabraniają automatów w robots.txt).
 
     python3 biezace.py KATALOG [--dni 90] [--pauza 1] [--budzet 40] [--przytnij]
 
@@ -18,10 +17,8 @@ akty bez PDF-u zostają na następny przebieg (stan.json: aktow_z_pdf < aktow). 
 import argparse
 import csv
 import datetime as dt
-import html
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -33,9 +30,7 @@ from pobierz import get, save
 from wspolne import API, CACHE
 
 HERE = Path(__file__).resolve().parent
-WYDAWCA = {"DU": "https://dziennikustaw.gov.pl", "MP": "https://monitorpolski.gov.pl"}
-DATA_OGL = re.compile(r"Data ogłoszenia:\s*(?:<[^>]+>\s*)*(\d{4}-\d{2}-\d{2})")
-POLA = ["eli", "kontrola", "pole", "w_API", "inna_wartosc", "zrodlo_innej_wartosci", "wydawca", "od", "tytul"]
+POLA = ["eli", "kontrola", "pole", "w_API", "inna_wartosc", "zrodlo_innej_wartosci", "od", "tytul"]
 
 
 def okno(od: str, lata: range, tmp: Path, pauza: float) -> list[dict]:
@@ -146,20 +141,6 @@ def wiersze(out: Path):
                 f"nagłówek PDF: {r['cytat']}"
 
 
-def wydawca(eli: str, pauza: float, nie_dziala: set) -> str:
-    pub = eli.split("/")[0]
-    if pub in nie_dziala:
-        return "błąd pobrania"
-    try:
-        data = get(f"{WYDAWCA[pub]}/{eli}")
-    except SystemExit:  # get() po 4 nieudanych próbach: tej strony już nie pytamy, kontrola idzie dalej
-        nie_dziala.add(pub)
-        return "błąd pobrania"
-    time.sleep(pauza)
-    m = DATA_OGL.search(html.unescape(data.decode("utf-8", "replace"))) if data else None
-    return m[1] if m else "brak"
-
-
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("katalog")
@@ -189,15 +170,12 @@ def main() -> None:
     f = dest / "kandydaci.csv"
     if f.exists():
         old = {(r["eli"], r["kontrola"], r["pole"], r["w_API"]): r for r in csv.DictReader(open(f, encoding="utf-8"))}
-    res, nie_dziala = [], set()
+    res = []
     for eli, kontrola, pole, val, other, src in sorted(set(rows)):
         prev = old.get((eli, kontrola, pole, val))
-        pub_date = ""
-        if "promulgation" in pole:
-            pub_date = wydawca(eli, a.pauza, nie_dziala)
         res.append({"eli": eli, "kontrola": kontrola, "pole": pole, "w_API": val, "inna_wartosc": other,
-                    "zrodlo_innej_wartosci": src, "wydawca": pub_date,
-                    "od": prev["od"] if prev else today.isoformat(), "tytul": titles[eli][:200]})
+                    "zrodlo_innej_wartosci": src, "od": prev["od"] if prev else today.isoformat(),
+                    "tytul": titles[eli][:200]})
     with open(f, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=POLA)
         w.writeheader()
