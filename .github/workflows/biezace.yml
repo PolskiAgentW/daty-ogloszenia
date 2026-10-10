@@ -1,0 +1,53 @@
+name: Kontrola bieżących rekordów
+
+# Akty Dz.U. i M.P. z ostatnich 90 dni przez kontrole 1–5 (kontrole/biezace.py) → biezace/kandydaci.csv.
+on:
+  schedule:
+    - cron: "41 6 * * *"  # codziennie 06:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: biezace
+  cancel-in-progress: false
+
+jobs:
+  kontrola:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Instalacja pdftotext
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q poppler-utils
+          pdftotext -v 2>&1 | head -1
+      # PDF-y z poprzednich przebiegów: bez nich każdy przebieg pobierałby ok. 700 PDF-ów
+      - uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/eli-cache
+          key: eli-pdf-${{ github.run_id }}
+          restore-keys: eli-pdf-
+      - name: Kontrola
+        working-directory: kontrole
+        env:
+          ELI_CACHE: ${{ runner.temp }}/eli-cache
+        run: python3 biezace.py ../biezace --dni 90 --przytnij
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: ${{ runner.temp }}/eli-cache
+          key: eli-pdf-${{ github.run_id }}
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add biezace/kandydaci.csv biezace/stan.json
+          if git diff --cached --quiet; then echo "Bez zmian."; exit 0; fi
+          n=$(python3 -c "import json; print(json.load(open('biezace/stan.json'))['kandydatow'])")
+          git commit -q -m "Kontrola bieżących rekordów $(date -u +%F): kandydaci: $n"
+          git pull -q --rebase && git push

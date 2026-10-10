@@ -24,6 +24,7 @@ python3 metadane.py --pub MP --lata 2012-2026 wynik_metadane.csv             # k
 python3 naglowek_2012.py --pub MP --lata 2012-2026 wynik_naglowek.csv        # kontrola 5
 python3 data_zakonczenia.py dziennik-ustaw-1918-1989-md wynik_zakonczenie.csv  # kontrola 6, korpus eli2md
 python3 zmiany_api.py zgloszone.csv                                          # czy API już ma wartość z druku
+python3 biezace.py ../biezace --dni 90                                       # kontrole 1–5 na aktach z 90 dni
 ```
 
 Dane trafiają do katalogu `ELI_CACHE` (domyślnie `~/cache/eli`, ten sam układ co w
@@ -42,12 +43,13 @@ Kontrole 2–5 nie korzystają z sieci.
 | `naglowek_2012.py` | `promulgation` z datą „Warszawa, dnia …” w nagłówku dziennika na stronie 1 PDF-u (od 2012 r.) | `INNA`, `BRAK_W_API` |
 | `data_zakonczenia.py` | `announcementDate` aktów bez daty w tytule z datą formuły końcowej („Warszawa, dnia …”) w tekście aktu z korpusu [dziennik-ustaw-1918-1989-md](https://github.com/PolskiAgentW/dziennik-ustaw-1918-1989-md) (OCR skanów, eli2md) | `inna` |
 | `zmiany_api.py` | listę zgłoszonych wartości ze stanem API teraz | – |
+| `biezace.py` | kontrole 1–5 na aktach z ostatnich N dni (świeże listy, PDF-y tylko nowe albo zmienione), przy `promulgation` także „Data ogłoszenia” ze strony wydawcy; uruchamiany codziennie, wynik w [`biezace/`](../biezace/) | każdy wiersz |
 
 Szczegóły każdej kontroli są w nagłówku skryptu.
 
 ## Zmierzona trafność
 
-Liczby z kontroli przeprowadzonych 4–7 października 2026 r. na listach i PDF-ach z API z tych dni. „Potwierdzone” znaczy:
+Liczby z kontroli przeprowadzonych 4–10 października 2026 r. na listach i PDF-ach z API z tych dni. „Potwierdzone” znaczy:
 druk (tekst PDF-u, a dla skanów obraz strony) zgadza się z wnioskiem kontroli. Przy datach sprzed 2000 r. były to dwa
 niezależne odczyty obrazu strony i za potwierdzone uznano tylko daty, w których oba dały ten sam wynik.
 
@@ -61,7 +63,8 @@ niezależne odczyty obrazu strony i za potwierdzone uznano tylko daty, w któryc
 | `numer_tytulu.py` | M.P. 1990–1999, ponownie, wszystkie PDF-y: 226 tytułów | 1 | 0 | 1: warstwa OCR ma „Nr 69”, druk „Nr 59” |
 | `numer_tytulu.py` | Dz.U. 1990–2026: 155 tytułów | 0 | – | – |
 | `metadane.py` | M.P. 2012–2026, Dz.U. 2025–2026 i część 2024 (razem 21 595 PDF-ów) | 67 | 62 | 5: inny zapis numeru, sygnatura wyroku albo cytowany wyrok w nagłówku |
-| `naglowek_2012.py` | M.P. 2012–2026, Dz.U. 2025–2026 i część 2024 (21 595 PDF-ów) | 186 `INNA`, 3 `BRAK_W_API` | nie mierzone (niżej) | – |
+| `naglowek_2012.py` | M.P. 2012–2026, Dz.U. 2025–2026 i część 2024 (21 595 PDF-ów) | 186 `INNA`, 3 `BRAK_W_API` | 189: strona wydawcy podaje datę z nagłówka PDF-u (10.10.2026; w 11 API ma ją już też) | 0 |
+| `biezace.py` | akty z `promulgation` albo `announcementDate` od 12.07 do 10.10.2026: 686 (10.10.2026) | 10 wierszy w 7 aktach | 10 (tekst PDF-u; [opis](../biezace/README.md#trafność)) | 0 |
 | `data_zakonczenia.py` | Dz.U. 1918–1989: 685 aktów bez daty w tytule, bez umów międzynarodowych (10.10.2026; 591 `zgodna`, 70 bez daty w tekście) | 24 `inna` | 8 (z 15 obejrzanych na obrazie strony) | 9 odrzuconych z samego tekstu (przywołania innych aktów, treść sprostowań); z 15 obejrzanych 7: 5 to data sąsiedniej pozycji, 1 błąd roku w druku, 1 błąd OCR cyfry |
 
 Uwagi:
@@ -74,8 +77,10 @@ Uwagi:
 - `metadane.py` dla 2000–2011 nie działa: jeden PDF obejmuje kilka aktów, a warstwa tekstowa części roczników ma
   inne kodowanie polskich liter (np. „paêdziernika”).
 - `naglowek_2012.py`: PDF-y od 2012 r. są cyfrowe, więc data w nagłówku pochodzi z tekstu, nie z OCR. 124 ze 186 różnic
-  to jeden dzień. Nie wiem, czy to niezgodność, czy inna konwencja (np. data podpisania numeru). Trafności tej kontroli
-  nie mierzono na obrazach.
+  to jeden dzień. Do 10.10.2026 nie wiedziałem, czy to niezgodność, czy inna konwencja (np. data podpisania numeru).
+  Wtedy porównałem wszystkie 189 wierszy z „Datą ogłoszenia” na stronie aktu u wydawcy (dziennikustaw.gov.pl,
+  monitorpolski.gov.pl). We wszystkich 189 strona wydawcy ma tę samą datę co nagłówek PDF-u, także przy różnicy
+  o jeden dzień.
 - `data_zakonczenia.py`: w 2 z 8 potwierdzonych druk ma ten sam dzień co API, ale inny miesiąc (27 sierpnia /
   27 września 1919, 7 marca / 7 maja 1920). Czy to błąd druku, nie wiem. W 1 z 8 API ma datę poprzedniej pozycji
   z tej samej strony. Korpus eli2md bywa wycięty z sąsiednią pozycją (5 z 15 obejrzanych), więc wynik `zgodna` też
