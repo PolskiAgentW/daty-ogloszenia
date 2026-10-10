@@ -75,6 +75,9 @@ def pdfy(acts: list[dict], tmp: Path, pauza: float, budzet: float) -> tuple[int,
             save(pdf, data)
             stamp.write_text(change)
             got += 1
+            if got % 100 == 0:
+                print(f"pobrane PDF-y: {got}, {budzet - (end - time.monotonic()) / 60:.0f} min", file=sys.stderr,
+                      flush=True)
         w = tmp / it["ELI"]
         w.mkdir(parents=True, exist_ok=True)
         (w / "meta.json").write_text(json.dumps(it, ensure_ascii=False), encoding="utf-8")
