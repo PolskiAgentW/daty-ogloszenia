@@ -22,6 +22,7 @@ python3 zly_pdf.py --pub MP --lata 2012-2026 wynik_zly_pdf.csv               # k
 python3 numer_tytulu.py --pub MP --lata 2012-2026 wynik_numer.csv            # kontrola 3
 python3 metadane.py --pub MP --lata 2012-2026 wynik_metadane.csv             # kontrola 4
 python3 naglowek_2012.py --pub MP --lata 2012-2026 wynik_naglowek.csv        # kontrola 5
+python3 data_zakonczenia.py dziennik-ustaw-1918-1989-md wynik_zakonczenie.csv  # kontrola 6, korpus eli2md
 python3 zmiany_api.py zgloszone.csv                                          # czy API już ma wartość z druku
 ```
 
@@ -39,6 +40,7 @@ Kontrole 2–5 nie korzystają z sieci.
 | `numer_tytulu.py` | numer z tytułu („nr 110-15-2008”, „Nr 59”) z tekstem PDF-u | `BRAK` |
 | `metadane.py` | datę i numer z tytułu z nagłówkiem aktu w PDF-ie (pod „Poz. N”) | `DATA`, `NR`, `DATA+NR` |
 | `naglowek_2012.py` | `promulgation` z datą „Warszawa, dnia …” w nagłówku dziennika na stronie 1 PDF-u (od 2012 r.) | `INNA`, `BRAK_W_API` |
+| `data_zakonczenia.py` | `announcementDate` aktów bez daty w tytule z datą formuły końcowej („Warszawa, dnia …”) w tekście aktu z korpusu [dziennik-ustaw-1918-1989-md](https://github.com/PolskiAgentW/dziennik-ustaw-1918-1989-md) (OCR skanów, eli2md) | `inna` |
 | `zmiany_api.py` | listę zgłoszonych wartości ze stanem API teraz | – |
 
 Szczegóły każdej kontroli są w nagłówku skryptu.
@@ -60,6 +62,7 @@ niezależne odczyty obrazu strony i za potwierdzone uznano tylko daty, w któryc
 | `numer_tytulu.py` | Dz.U. 1990–2026: 155 tytułów | 0 | – | – |
 | `metadane.py` | M.P. 2012–2026, Dz.U. 2025–2026 i część 2024 (razem 21 595 PDF-ów) | 67 | 62 | 5: inny zapis numeru, sygnatura wyroku albo cytowany wyrok w nagłówku |
 | `naglowek_2012.py` | M.P. 2012–2026, Dz.U. 2025–2026 i część 2024 (21 595 PDF-ów) | 186 `INNA`, 3 `BRAK_W_API` | nie mierzone (niżej) | – |
+| `data_zakonczenia.py` | Dz.U. 1918–1989: 685 aktów bez daty w tytule, bez umów międzynarodowych (10.10.2026; 591 `zgodna`, 70 bez daty w tekście) | 24 `inna` | 8 (z 15 obejrzanych na obrazie strony) | 9 odrzuconych z samego tekstu (przywołania innych aktów, treść sprostowań); z 15 obejrzanych 7: 5 to data sąsiedniej pozycji, 1 błąd roku w druku, 1 błąd OCR cyfry |
 
 Uwagi:
 - `daty_tytul.py` porównuje dwa pola tego samego rekordu, więc przy różnicy jedno z nich nie zgadza się z drukiem.
@@ -73,6 +76,12 @@ Uwagi:
 - `naglowek_2012.py`: PDF-y od 2012 r. są cyfrowe, więc data w nagłówku pochodzi z tekstu, nie z OCR. 124 ze 186 różnic
   to jeden dzień. Nie wiem, czy to niezgodność, czy inna konwencja (np. data podpisania numeru). Trafności tej kontroli
   nie mierzono na obrazach.
+- `data_zakonczenia.py`: w 2 z 8 potwierdzonych druk ma ten sam dzień co API, ale inny miesiąc (27 sierpnia /
+  27 września 1919, 7 marca / 7 maja 1920). Czy to błąd druku, nie wiem. W 1 z 8 API ma datę poprzedniej pozycji
+  z tej samej strony. Korpus eli2md bywa wycięty z sąsiednią pozycją (5 z 15 obejrzanych), więc wynik `zgodna` też
+  może dotyczyć sąsiedniego aktu, jeśli API ma jego datę. Takich przypadków nie liczyłem.
+  Z 70 aktów bez daty w tekście obejrzałem 4 (losowo): 2 nie mają daty w druku, 2 mają tylko miesiąc
+  („Warszawa, w grudniu 1919 r.”); w 1 z nich `announcementDate` jest z innego miesiąca (30.11.1919).
 - Zakres to PDF-y, które miałem pobrane. Dz.U. 2012–2024 (akty, które API daje też jako HTML) prawie nie były
   sprawdzane.
 
